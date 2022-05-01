@@ -1,0 +1,102 @@
+##### Imports #####
+import "tfplan-functions" as plan
+//import "tfplan/v2" as tfplan
+
+
+##### Prints #####
+print("******************************")
+
+##### Call Functions #####
+# Get all DB instances
+allDBInstances = plan.find_resources("aws_db_instance")
+print("******************************")
+
+# Check Backup Retention Period
+violators = {}
+messages = {} 
+
+# loop all DB Instances
+for allDBInstances as db_key, dbInstance {
+	pgname = plan.evaluate_attribute(dbInstance,"parameter_group_name")
+	print("The DB instance: "+plan.to_string(dbInstance.address)+" has parameter_group_name as: ",pgname)
+	print("******************************")
+	if pgname is not null {
+		allAWSDBpg = plan.find_resources("aws_db_parameter_group")
+		for allAWSDBpg as pg_key, awsDBpg {
+			aws_pgname = plan.evaluate_attribute(awsDBpg,"name")
+	        print("The aws_db_parameter_group name: ",aws_pgname)
+	        print("******************************")
+			# check aws_db_parameter_group and parameter_group_name on the DB Instance are same
+			if aws_pgname is not null and aws_pgname ==  pgname {
+			            # if both log_min_duration_statement & log_statement missing
+						misingReqParam = true			
+			            # Get All the parameters of parameter group
+						parms = plan.evaluate_attribute(awsDBpg,"parameter")
+						for parms as pm_key,parm {
+						parm_name = plan.evaluate_attribute(parm,"name")
+						print("The parameter name: ",parm_name)
+						if parm_name is not null and parm_name == "log_min_duration_statement" {
+							value = plan.evaluate_attribute(parm,"value")
+							print("The log_min_duration_statement parameter has value: ",value)
+							print("******************************")
+							if value is not null and value != "1" {
+							  message = "The DB Instance: "+ plan.to_string(dbInstance.address) + " has parameter log_min_duration_statement with value: "+plan.to_string(value)+" , that is not in the allowed!!!"
+							  violators[db_key] = dbInstance
+							  messages[db_key] = message
+						      print(message)
+						      print("******************************")
+							}
+						    misingReqParam = false
+						}
+						if parm_name is not null and parm_name == "log_statement" {
+							value = plan.evaluate_attribute(parm,"value")
+							print("The log_statement parameter has value: ",value)
+							print("******************************")
+							if value is not null and value != "all" {
+							  message = "The DB Instance: "+ plan.to_string(dbInstance.address) + " has parameter log_min_duration_statement with value: "+plan.to_string(value)+" , that is not in the allowed!!!"
+							  violators[db_key] = dbInstance
+							  messages[db_key] = message
+						      print(message)
+						      print("******************************")
+							}
+							misingReqParam = false
+						}	                    
+						} 
+							if misingReqParam {
+					    message = "The aws_db_parameter_group: "+ plan.to_string(aws_pgname) + "  has mising parameters: aws_db_parameter_group and parameter_group_name , that is not in the allowed!!!"
+						violators[db_key] = dbInstance
+						messages[db_key] = message
+						print(message)
+						print("******************************")
+							}
+			} else {
+						message = "The aws_db_parameter_group is not defined for DB Instance: "+ plan.to_string(dbInstance.address) + " , that is not in the allowed!!!"
+						violators[db_key] = dbInstance
+						messages[db_key] = message
+						print(message)
+						print("******************************")
+			}
+		}
+
+	} else {
+		message = "DB Instance: "+ plan.to_string(dbInstance.address) + " has no parameter_group_name: "+plan.to_string(pgnamev)+" that is not in the allowed!!!"
+		violators[db_key] = dbInstance
+		messages[db_key] = message
+		print(message)
+		print("******************************")
+	}
+}
+
+print("******************************")
+# Count violations
+violations = length(violators)
+print("violations: ",violations)
+print("******************************")
+
+
+##### Main #####
+main = rule {
+  violations is 0
+  //false
+  //true
+}

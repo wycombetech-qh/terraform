@@ -1,0 +1,46 @@
+id = "run-vmJqPjaG4yvRPktL"
+created_at = "2022-04-24T01:01:39.201Z"
+message = "Triggered via CLI"
+commit_sha = undefined
+speculative = true
+is_destroy = false
+refresh = true
+refresh_only = false
+replace_addrs = null
+target_addrs = null
+
+variables = {
+	"AWS_ACCESS_KEY_ID": {
+		"category":  "env",
+		"sensitive": false,
+	},
+	"AWS_DEFAULT_REGION": {
+		"category":  "env",
+		"sensitive": false,
+	},
+	"AWS_SECRET_ACCESS_KEY": {
+		"category":  "env",
+		"sensitive": false,
+	},
+}
+
+organization = {
+	"name": "wycombtech",
+}
+
+workspace = {
+	"auto_apply":        false,
+	"created_at":        "2022-04-19T14:18:34.441Z",
+	"description":       "rds_db_instance",
+	"id":                "ws-TjZq9MZDrPYg6Tz4",
+	"name":              "rds_db_instance",
+	"tags":              [],
+	"vcs_repo":          null,
+	"working_directory": "",
+}
+
+cost_estimate = {
+	"delta_monthly_cost":    "12.73999999999999968",
+	"prior_monthly_cost":    "0.0",
+	"proposed_monthly_cost": "12.73999999999999968",
+}

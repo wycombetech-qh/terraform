@@ -1,0 +1,113 @@
+##### Imports #####
+import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
+import "tfrun" as tfrun
+//import "tfconfig/v2" as tfconfig
+//import "tfstate/v2" as tfstate
+import "strings"
+import "types"
+import "time"
+
+##### Prints #####
+print("******************************")
+
+//print("Current time: ",time.now)
+//print("******************************")
+print("tfrun.workspace.name: ",tfrun.workspace.name)
+print("******************************")
+
+//print("tfconfig.resources: ",tfconfig.resources)
+//print("******************************")
+//print("tfstate.resources: ",tfstate.resources)
+//print("******************************")
+
+/*
+allowedBRP = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35]
+
+violatingDBInstnces = plan.filter_attribute_contains_items_not_in_list(allDBInstances,"backup_retention_period", allowedBRP, true)
+print("violatingDBInstnces: ",violatingDBInstnces)
+
+violatingDBInstnces = plan.filter_attribute_less_than_value(allDBInstances,"backup_retention_period", 1, true)
+print("violatingDBInstnces: ",violatingDBInstnces)
+
+
+allowedEngines = ["mysql"]
+notAllowedEngines = ["oracle"]
+
+notAllowed = plan.filter_attribute_contains_items_from_list(allDBInstances,"engine",allowedEngines, true)
+print("notAllowed: ",notAllowed)
+print("******************************")
+
+allowed = plan.filter_attribute_contains_items_not_in_list(allDBInstances,"engine",notAllowedEngines, true)
+print("allowed: ",allowed)
+print("******************************")
+*/
+
+
+##### Call Functions #####
+# Get all DB instances
+allDBInstances = plan.find_resources("aws_db_instance")
+//print("allDBInstances: ",allDBInstances)
+print("******************************")
+
+# Check Backup Retention Period
+violators = {}
+messages = {} 
+
+
+for allDBInstances as key, dbInstance {
+/*
+print("******************************")
+v = plan.evaluate_attribute(dbInstance,"engine")
+print("evaluate_attribute: ",v)
+print("******************************")
+print("Instance type: ",dbInstance.type)
+print("******************************")
+print("Instance address: ",dbInstance.address)
+print("******************************")
+print("Instance change: ",dbInstance.change)
+print("******************************")
+print("Instance after: ",dbInstance.change.after)
+print("******************************") 
+brp = dbInstance.change.after.backup_retention_period
+print("backup_retention_period: ",brp)
+*/
+
+print("******************************")
+v = plan.evaluate_attribute(dbInstance,"backup_retention_period")
+print("evaluate_attribute: ",v)
+print("******************************")
+if v is not null and (v < 1 or v > 35)  {
+print("*******************Inside IF***********")
+message = "DB Instance: "+ plan.to_string(dbInstance.address) + " has backup_retention_period: "+plan.to_string(v)+" that is not in the allowed!!!"
+      violators[key] = dbInstance
+      messages[key] = message
+      print(message)
+	  print("******************************")
+      }  
+	  
+if v is null {
+print("*******************Inside IF***********")
+message = "DB Instance: "+ plan.to_string(dbInstance.address) + " has backup_retention_period: "+plan.to_string(v)+" that is not in the allowed!!!"
+      violators[key] = dbInstance
+      messages[key] = message
+      print(message)
+	  print("******************************")
+}
+}
+
+
+
+print("******************************")
+# Count violations
+violations = length(violators)
+print("violations: ",violations)
+print("******************************")
+
+
+##### Main #####
+main = rule {
+  //violations is 0
+  //false
+  true
+}
